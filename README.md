@@ -16,7 +16,7 @@ Related in topic to the author's undergraduate work on corrosion inhibition of m
 1. **Random splits overstate performance.** Moving from random to scaffold validation lowers R² from 0.65 to 0.52 for the best model. The scaffold figure is the realistic estimate for screening genuinely new compounds.
 2. **Descriptors beat fingerprints on this small dataset.** With 315 molecules, ECFP4 bits alone give scaffold R² of at most 0.23, versus 0.52 for RDKit descriptors. Adding fingerprints to the descriptors did not help.
 3. **Tree ensembles beat linear and neural models** (Ridge R² = 0.32, MLP R² = 0.24 under scaffold CV). The MLP is also the least stable across repeats.
-4. **Errors grow for molecules unlike the training set.** Mean absolute error is 8.6 IE points when the nearest training molecule has Tanimoto similarity below 0.3, and about 4.3 once similarity reaches 0.4 or more.
+4. **Errors increase for structurally dissimilar molecules.** The model achieves a mean absolute error of 8.68 percentage points for molecules with Tanimoto similarity below 0.3, compared with approximately 4.45 percentage points for molecules with similarity of 0.4 or greater, highlighting the importance of applicability-domain assessment.
 
 ## Figures
 
@@ -65,13 +65,13 @@ Full benchmark for every model, feature set and scheme: [`results/benchmark_tabl
 ## Reproduce
 
 ```bash
-git clone https://github.com/<your-username>/corrosion-inhibitor-qspr.git
+git clone https://github.com/NickOmek/corrosion-inhibitor-qspr.git
 cd corrosion-inhibitor-qspr
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 python scripts/download_data.py      # fetch the dataset
-python scripts/run_pipeline.py       # full study, about 20 minutes on 2 CPU cores
+python scripts/run_pipeline.py       # full study; runtime depends on hardware
 python scripts/run_pipeline.py --quick   # fast smoke run, about 4 minutes
 pytest -q                            # unit tests
 ```
@@ -86,6 +86,24 @@ predict_ie(["c1ccc2[nH]c(N)nc2c1", "CCCCCCCCCCCCCCCC[N+](C)(C)C.[Br-]"])
 ```
 
 `max_similarity` in the output flags molecules far from the training data, where predictions are least reliable.
+
+### Reproducibility Verification
+
+The complete computational workflow was successfully executed in a dedicated Conda environment using Python 3.11.17 on Windows.
+
+**Verification results:**
+
+| Verification | Result |
+|---|---|
+| Automated unit tests | 8/8 passed |
+| Best-performing model | XGBoost with RDKit descriptors |
+| Scaffold cross-validation R² | 0.520 |
+| Scaffold cross-validation RMSE | 8.39 percentage points |
+| Full pipeline runtime | 2,128 seconds (35 minutes, 28 seconds) |
+
+The reproduced performance metrics agree with the values reported in the benchmark summary at the stated precision.
+
+These results confirm successful execution of the complete pipeline in the tested environment. They do not constitute independent external validation of the predictive model.
 
 ## Repository layout
 
